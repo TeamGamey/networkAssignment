@@ -16,15 +16,41 @@ import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Menu;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
 
 public class DownloadActivity extends Activity {
+    Button downloadButton;
+    EditText logHeader;
+    TextView statusTextView;
+    TextView throughputTextView;
+    TextView latencyTextView;
+
+    View.OnClickListener clickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View arg0) {
+            statusTextView.setText("Working...");
+            downloadButton.setEnabled(false);
+            appendLog("");
+            appendLog("Header: " + logHeader.getText().toString());
+            DownloadFile downloadFile = new DownloadFile();
+            downloadFile.execute("http://web.mit.edu/21w.789/www/papers/griswold2004.pdf");
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_download);
-        DownloadFile downloadFile = new DownloadFile();
-        downloadFile.execute("http://web.mit.edu/21w.789/www/papers/griswold2004.pdf");
+
+        downloadButton = (Button) findViewById(R.id.button1);
+        downloadButton.setOnClickListener(clickListener);
+        logHeader = (EditText) findViewById(R.id.editText1);
+        statusTextView = (TextView) findViewById(R.id.TextView01);
+        throughputTextView = (TextView) findViewById(R.id.TextView02);
+        latencyTextView = (TextView) findViewById(R.id.TextView03);
     }
 
     @Override
@@ -35,6 +61,9 @@ public class DownloadActivity extends Activity {
     }
 
     private class DownloadFile extends AsyncTask<String, Integer, String> {
+        Long latency;
+        Double throughput;
+
         @Override
         protected String doInBackground(String... sUrl) {
             long startTime = System.currentTimeMillis();
@@ -66,6 +95,7 @@ public class DownloadActivity extends Activity {
                 while ((count = input.read(data)) != -1) {
                     if (firstIteration) {
                         firstIteration = false;
+                        latency = (System.currentTimeMillis() - startTime);
                         appendLog("Latency: " + (System.currentTimeMillis() - startTime) + " (ms)");
                     }
 
@@ -89,8 +119,9 @@ public class DownloadActivity extends Activity {
                     output.write(data, 0, count);
                 }
 
-                appendLog("Overall average throughput: " + (fileLength / BYTES_IN_KB)
-                        / (0.001 * (System.currentTimeMillis() - startTime)));
+                throughput = (fileLength / BYTES_IN_KB)
+                        / (0.001 * (System.currentTimeMillis() - startTime));
+                appendLog("Overall average throughput: " + throughput);
 
                 output.flush();
                 output.close();
@@ -98,6 +129,8 @@ public class DownloadActivity extends Activity {
 
             } catch (Exception e) {
             }
+            
+            
             return null;
         }
 
@@ -111,6 +144,13 @@ public class DownloadActivity extends Activity {
         protected void onProgressUpdate(Integer... progress) {
             super.onProgressUpdate(progress);
             // mProgressDialog.setProgress(progress[0]);
+        }
+        
+        protected void onPostExecute(String result) {
+            downloadButton.setEnabled(true);
+            statusTextView.setText("Done...");
+            throughputTextView.setText(throughput.toString());
+            latencyTextView.setText(latency.toString());
         }
     }
 
