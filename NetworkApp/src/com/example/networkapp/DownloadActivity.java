@@ -10,10 +10,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Calendar;
 
 import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 
 public class DownloadActivity extends Activity {
@@ -36,19 +38,20 @@ public class DownloadActivity extends Activity {
 	private class DownloadFile extends AsyncTask<String, Integer, String> {
 	    @Override
 	    protected String doInBackground(String... sUrl) {
+            long startTime = System.currentTimeMillis();
+            appendLog("New log timestamp at " + Calendar.getInstance().getTime().toGMTString());
 	        try {
 	            URL url = new URL(sUrl[0]);
 	            URLConnection connection = url.openConnection();
 	            connection.connect();
-	            System.out.println("Starting download");
 	            // this will be useful so that you can show a typical 0-100% progress bar
 	            int fileLength = connection.getContentLength();
 
 	            // download the file
 	            InputStream input = new BufferedInputStream(url.openStream());
-	            OutputStream output = new FileOutputStream("sdcard/21w.pdf");
+                OutputStream output = new FileOutputStream("sdcard/21w-new.pdf");
 
-	            byte data[] = new byte[1024];
+                byte data[] = new byte[4096];
 	            long total = 0;
 	            int count;
 	            while ((count = input.read(data)) != -1) {
@@ -56,6 +59,10 @@ public class DownloadActivity extends Activity {
 	                // publishing the progress....
 	                //publishProgress((int) (total * 100 / fileLength));
 	                output.write(data, 0, count);
+                    String logDataString = (System.currentTimeMillis() - startTime) + "ms : "
+                            + total + "/" + fileLength + " bytes.";
+                    Log.i("#", logDataString);
+                    appendLog(logDataString);
 	            }
 
 	            output.flush();
