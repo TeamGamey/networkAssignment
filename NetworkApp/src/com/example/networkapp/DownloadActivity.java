@@ -81,7 +81,7 @@ public class DownloadActivity extends Activity {
                 // overwrite the file since we care only of statistics
                 OutputStream output = new FileOutputStream("sdcard/21w-new.pdf");
 
-                final int MILLISECONDS_IN_PERIOD = 100;
+                final int MILLISECONDS_IN_PERIOD = 5000;
                 final int BYTES_PER_STEP = 512;
                 final double BYTES_IN_KB = 1024.0;
 
@@ -96,6 +96,7 @@ public class DownloadActivity extends Activity {
                     if (firstIteration) {
                         firstIteration = false;
                         latency = (System.currentTimeMillis() - startTime);
+                        currentPeriod = (int) (latency / MILLISECONDS_IN_PERIOD);
                         appendLog("Latency: " + (System.currentTimeMillis() - startTime) + " (ms)");
                     }
 
@@ -109,7 +110,7 @@ public class DownloadActivity extends Activity {
                         appendLog(logDataString);
                         double throughput = ((bytesDownloaded - previousBytesDownloaded) / BYTES_IN_KB)
                                 / ((milliseconds - previousMilliseconds) * 0.001);
-                        appendLog("Throughput last 100 milliseconds: " + throughput + " (KB/s)");
+                        appendLog("Throughput last 5 s: " + throughput + " (KB/s)");
 
                         previousMilliseconds = milliseconds;
                         previousBytesDownloaded = bytesDownloaded;
